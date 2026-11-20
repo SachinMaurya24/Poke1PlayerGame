@@ -1,0 +1,607 @@
+{
+  "Walk": {
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 4,
+    "durations": [
+      6,
+      6,
+      6,
+      6
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Attack": {
+    "frameWidth": 64,
+    "frameHeight": 72,
+    "frameCount": 15,
+    "durations": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "rushFrame": 2,
+    "hitFrame": 3,
+    "returnFrame": 8
+  },
+  "QuickStrike": {
+    "frameWidth": 112,
+    "frameHeight": 120,
+    "frameCount": 15,
+    "durations": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": 3,
+    "returnFrame": 8
+  },
+  "Strike": {
+    "frameWidth": 64,
+    "frameHeight": 72,
+    "frameCount": 9,
+    "durations": [
+      2,
+      6,
+      1,
+      2,
+      2,
+      6,
+      1,
+      2,
+      2
+    ],
+    "rushFrame": 1,
+    "hitFrame": 2,
+    "returnFrame": 5
+  },
+  "RearUp": {
+    "frameWidth": 32,
+    "frameHeight": 56,
+    "frameCount": 12,
+    "durations": [
+      4,
+      1,
+      2,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": 4,
+    "returnFrame": 7
+  },
+  "Sleep": {
+    "frameWidth": 24,
+    "frameHeight": 32,
+    "frameCount": 2,
+    "durations": [
+      30,
+      35
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Hurt": {
+    "frameWidth": 40,
+    "frameHeight": 56,
+    "frameCount": 2,
+    "durations": [
+      2,
+      8
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Idle": {
+    "frameWidth": 32,
+    "frameHeight": 56,
+    "frameCount": 6,
+    "durations": [
+      40,
+      2,
+      2,
+      4,
+      2,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Swing": {
+    "frameWidth": 80,
+    "frameHeight": 80,
+    "frameCount": 9,
+    "durations": [
+      2,
+      1,
+      2,
+      2,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "rushFrame": null,
+    "hitFrame": 5,
+    "returnFrame": 5
+  },
+  "Double": {
+    "frameWidth": 56,
+    "frameHeight": 72,
+    "frameCount": 16,
+    "durations": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      2,
+      3,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Hop": {
+    "frameWidth": 32,
+    "frameHeight": 88,
+    "frameCount": 10,
+    "durations": [
+      2,
+      1,
+      2,
+      3,
+      4,
+      4,
+      3,
+      2,
+      1,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": 9,
+    "returnFrame": null
+  },
+  "Charge": {
+    "frameWidth": 32,
+    "frameHeight": 40,
+    "frameCount": 10,
+    "durations": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": 5,
+    "returnFrame": 9
+  },
+  "Rotate": {
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 9,
+    "durations": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": 8,
+    "returnFrame": null
+  },
+  "EventSleep": {
+    "frameWidth": 40,
+    "frameHeight": 24,
+    "frameCount": 2,
+    "durations": [
+      30,
+      35
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Wake": {
+    "frameWidth": 40,
+    "frameHeight": 48,
+    "frameCount": 5,
+    "durations": [
+      8,
+      6,
+      14,
+      4,
+      10
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Eat": {
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 4,
+    "durations": [
+      6,
+      8,
+      6,
+      8
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Tumble": {
+    "frameWidth": 24,
+    "frameHeight": 40,
+    "frameCount": 8,
+    "durations": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Pose": {
+    "frameWidth": 24,
+    "frameHeight": 48,
+    "frameCount": 3,
+    "durations": [
+      12,
+      2,
+      8
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Pull": {
+    "frameWidth": 40,
+    "frameHeight": 48,
+    "frameCount": 7,
+    "durations": [
+      10,
+      12,
+      10,
+      12,
+      10,
+      12,
+      10
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Pain": {
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 12,
+    "durations": [
+      4,
+      1,
+      1,
+      1,
+      2,
+      1,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Float": {
+    "frameWidth": 40,
+    "frameHeight": 24,
+    "frameCount": 4,
+    "durations": [
+      9,
+      18,
+      9,
+      14
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "DeepBreath": {
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 9,
+    "durations": [
+      12,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      10,
+      4
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Nod": {
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 3,
+    "durations": [
+      6,
+      8,
+      6
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Sit": {
+    "frameWidth": 24,
+    "frameHeight": 40,
+    "frameCount": 3,
+    "durations": [
+      8,
+      8,
+      8
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "LookUp": {
+    "frameWidth": 24,
+    "frameHeight": 40,
+    "frameCount": 2,
+    "durations": [
+      6,
+      6
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Sink": {
+    "frameWidth": 24,
+    "frameHeight": 48,
+    "frameCount": 12,
+    "durations": [
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Trip": {
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 5,
+    "durations": [
+      4,
+      6,
+      4,
+      4,
+      4
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Laying": {
+    "frameWidth": 40,
+    "frameHeight": 24,
+    "frameCount": 1,
+    "durations": [
+      12
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "LeapForth": {
+    "frameWidth": 24,
+    "frameHeight": 80,
+    "frameCount": 6,
+    "durations": [
+      6,
+      1,
+      1,
+      2,
+      2,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Head": {
+    "frameWidth": 24,
+    "frameHeight": 40,
+    "frameCount": 1,
+    "durations": [
+      4
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Cringe": {
+    "frameWidth": 24,
+    "frameHeight": 56,
+    "frameCount": 2,
+    "durations": [
+      2,
+      8
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "LostBalance": {
+    "frameWidth": 24,
+    "frameHeight": 48,
+    "frameCount": 2,
+    "durations": [
+      8,
+      8
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "TumbleBack": {
+    "frameWidth": 24,
+    "frameHeight": 40,
+    "frameCount": 10,
+    "durations": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "Faint": {
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 4,
+    "durations": [
+      8,
+      12,
+      4,
+      10
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "HitGround": {
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 8,
+    "durations": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      6,
+      4,
+      4
+    ],
+    "rushFrame": null,
+    "hitFrame": null,
+    "returnFrame": null
+  },
+  "SpAttack": {
+    "frameWidth": 32,
+    "frameHeight": 56,
+    "frameCount": 12,
+    "durations": [
+      4,
+      1,
+      2,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "rushFrame": null,
+    "hitFrame": 4,
+    "returnFrame": 7,
+    "copyOf": "RearUp"
+  }
+}
