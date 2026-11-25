@@ -117,6 +117,7 @@ export class Blastoise extends Pokemon {
     if (skill.currentCooldown > 0) return false;
 
     skill.currentCooldown = skill.cooldown;
+    this.lookAt(targetX, targetY);
     this.setAction('shoot', true);
     this.actionLockTimer = 0.4;
 
@@ -140,6 +141,7 @@ export class Blastoise extends Pokemon {
         lifetime: 0.85,
         maxLifetime: 0.85,
         piercing: false,
+        isBasic: true,
         scale: 0.95,
       });
     }
@@ -151,7 +153,11 @@ export class Blastoise extends Pokemon {
   public castSkullBash(targetX: number, targetY: number): boolean {
     if (this.isFainted || this.isDashing || this.hurtTimer > 0) return false;
     const skill = this.skills.skullBash;
-    if (skill.currentCooldown > 0 || this.stats.stamina < skill.staminaCost) return false;
+    if (skill.currentCooldown > 0) return false;
+    if (this.stats.stamina < skill.staminaCost) {
+      if (this.isPlayer) this.notifyLowStamina();
+      return false;
+    }
 
     skill.currentCooldown = skill.cooldown;
     this.stats.stamina -= skill.staminaCost;
@@ -186,7 +192,11 @@ export class Blastoise extends Pokemon {
   public castHydroPump(targetX: number, targetY: number): boolean {
     if (this.isFainted || this.isDashing || this.hurtTimer > 0) return false;
     const skill = this.skills.hydroPump;
-    if (skill.currentCooldown > 0 || this.stats.stamina < skill.staminaCost) return false;
+    if (skill.currentCooldown > 0) return false;
+    if (this.stats.stamina < skill.staminaCost) {
+      if (this.isPlayer) this.notifyLowStamina();
+      return false;
+    }
 
     skill.currentCooldown = skill.cooldown;
     this.stats.stamina -= skill.staminaCost;
@@ -221,11 +231,24 @@ export class Blastoise extends Pokemon {
   public override updateAI(dt: number, target: Pokemon, arenaRadius: number) {
     if (this.isFainted || target.isFainted) return;
 
+    const diff = this.getDifficultyParams();
+
     this.waterGunCooldown = Math.max(0, this.waterGunCooldown - dt);
     this.hydroPumpCooldown = Math.max(0, this.hydroPumpCooldown - dt);
     this.meleeCooldown = Math.max(0, this.meleeCooldown - dt);
     this.dodgeCooldown = Math.max(0, this.dodgeCooldown - dt);
     this.aiPauseTimer = Math.max(0, this.aiPauseTimer - dt);
+
+    if (this.pendingUltTimer > 0) {
+      this.pendingUltTimer -= dt;
+      if (this.pendingUltTimer <= 0 && this.pendingUltAim) {
+        this.castHydroPump(this.pendingUltAim.x, this.pendingUltAim.y);
+        this.pendingUltAim = null;
+        this.hydroPumpCooldown = (5.4 + Math.random() * 1.6) * diff.cooldownMult;
+        this.aiPauseTimer = diff.pauseTime * 1.25;
+      }
+      return;
+    }
 
     this.strafeChangeTimer -= dt;
     if (this.strafeChangeTimer <= 0) {
@@ -244,26 +267,24 @@ export class Blastoise extends Pokemon {
     this.lookAt(target.x, target.y);
 
     if (dist < 80 && this.meleeCooldown <= 0) {
-      const aim = this.getAimWithSpread(target.x, target.y, 0.28);
+      const aim = this.getAimWithSpread(target.x, target.y, diff.spread);
       this.castSkullBash(aim.x, aim.y);
-      this.meleeCooldown = 3.6 + Math.random() * 0.8;
-      this.aiPauseTimer = 0.5;
+      this.meleeCooldown = (2.6 + Math.random() * 0.6) * diff.cooldownMult;
+      this.aiPauseTimer = diff.pauseTime;
       return;
     }
 
     if (this.hydroPumpCooldown <= 0 && dist < 380 && dist > 70) {
-      const aim = this.getAimWithSpread(target.x, target.y, 0.34);
-      this.castHydroPump(aim.x, aim.y);
-      this.hydroPumpCooldown = 7.5 + Math.random() * 2.0;
-      this.aiPauseTimer = 0.65;
+      const aim = this.getAimWithSpread(target.x, target.y, diff.spread);
+      this.startUltTelegraph(aim.x, aim.y, '#38bdf8', 0.45);
       return;
     }
 
     if (this.waterGunCooldown <= 0 && dist < 420) {
-      const aim = this.getAimWithSpread(target.x, target.y, 0.3);
+      const aim = this.getAimWithSpread(target.x, target.y, diff.spread);
       this.castWaterGun(aim.x, aim.y);
-      this.waterGunCooldown = 2.6 + Math.random() * 0.8;
-      this.aiPauseTimer = 0.4;
+      this.waterGunCooldown = (1.9 + Math.random() * 0.5) * diff.cooldownMult;
+      this.aiPauseTimer = diff.pauseTime * 0.8;
       return;
     }
 
@@ -282,8 +303,8 @@ export class Blastoise extends Pokemon {
 
     const mLen = Math.hypot(moveX, moveY);
     if (mLen > 0.1) {
-      this.vx = (moveX / mLen) * this.stats.speed * 0.72;
-      this.vy = (moveY / mLen) * this.stats.speed * 0.72;
+      this.vx = (moveX / mLen) * this.stats.speed * diff.speedMult;
+      this.vy = (moveY / mLen) * this.stats.speed * diff.speedMult;
       this.setAction('walk');
     } else {
       this.setAction('idle');
@@ -292,17 +313,18 @@ export class Blastoise extends Pokemon {
 
   private checkDodgeIncoming(dt: number) {
     if (this.dodgeCooldown > 0 || this.isDashing || this.hurtTimer > 0) return;
+    const diff = this.getDifficultyParams();
     for (const proj of combat.projectiles) {
       if (proj.owner === (this.isPlayer ? 'player' : 'enemy')) continue;
       const dist = Math.hypot(proj.x - this.x, proj.y - this.y);
       if (dist < 105) {
         const dot = proj.vx * (this.x - proj.x) + proj.vy * (this.y - proj.y);
         if (dot > 0) {
-          if (Math.random() < 0.25) {
+          if (Math.random() < diff.dodgeChance) {
             const pAngle = Math.atan2(proj.vy, proj.vx);
             const dodgeAngle = pAngle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
             this.dash(Math.cos(dodgeAngle), Math.sin(dodgeAngle), 360, 0.2);
-            this.dodgeCooldown = 5.5 + Math.random() * 2.0;
+            this.dodgeCooldown = diff.dodgeCooldown + Math.random() * 1.5;
           } else {
             this.dodgeCooldown = 1.2;
           }

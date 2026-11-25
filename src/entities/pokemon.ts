@@ -1,4 +1,4 @@
-import { Direction, ActionState, PokemonStats, PokemonElement } from '../types';
+import { Direction, ActionState, PokemonStats, PokemonElement, Difficulty } from '../types';
 import { SpriteAnimator, getDirectionFromVector } from '../sprite';
 import { combat } from '../combat';
 import { sound } from '../audio';
@@ -27,8 +27,12 @@ export class Pokemon {
   public dashVx: number = 0;
   public dashVy: number = 0;
 
-  // Action lock
+  // Action lock & AI difficulty/telegraph
   public actionLockTimer: number = 0;
+  public difficulty: Difficulty = 'easy';
+  protected pendingUltTimer: number = 0;
+  protected pendingUltAim: { x: number; y: number } | null = null;
+  private lowStaminaToastTimer: number = 0;
 
   constructor(stats: PokemonStats, x: number, y: number) {
     this.stats = { ...stats };
@@ -53,6 +57,10 @@ export class Pokemon {
 
     if (this.flashTimer > 0) {
       this.flashTimer -= dt;
+    }
+
+    if (this.lowStaminaToastTimer > 0) {
+      this.lowStaminaToastTimer -= dt;
     }
 
     if (this.invincibilityTimer > 0) {
@@ -124,7 +132,8 @@ export class Pokemon {
     amount: number,
     element: PokemonElement,
     knockbackX: number = 0,
-    knockbackY: number = 0
+    knockbackY: number = 0,
+    iframeDuration: number = 0.28
   ) {
     if (this.isInvincible || this.isFainted) {
       combat.spawnDamageNumber(this.x, this.y - 30, 'DODGED!', '#44ccff', 0.85);
@@ -164,9 +173,11 @@ export class Pokemon {
 
     // Flash & Hurt
     this.flashTimer = 0.15;
-    this.hurtTimer = 0.22;
-    this.invincibilityTimer = 0.28;
-    this.isInvincible = true;
+    this.hurtTimer = iframeDuration > 0.1 ? 0.22 : 0.08;
+    if (iframeDuration > 0) {
+      this.invincibilityTimer = iframeDuration;
+      this.isInvincible = true;
+    }
 
     sound.playHit(mult > 1.2);
 
@@ -188,7 +199,11 @@ export class Pokemon {
   }
 
   public dash(dx: number, dy: number, speed: number = 420, duration: number = 0.22) {
-    if (this.isFainted || this.isDashing || this.stats.stamina < 25) return false;
+    if (this.isFainted || this.isDashing) return false;
+    if (this.stats.stamina < 25) {
+      if (this.isPlayer) this.notifyLowStamina();
+      return false;
+    }
 
     this.stats.stamina -= 25;
     this.isDashing = true;
@@ -227,6 +242,42 @@ export class Pokemon {
   }
 
   public updateAI(dt: number, target: Pokemon, arenaRadius: number): void {}
+
+  /** Returns difficulty-scaled AI behavior parameters. */
+  protected getDifficultyParams() {
+    if (this.difficulty === 'hard') {
+      return { cooldownMult: 0.9, speedMult: 1.0, spread: 0.08, dodgeChance: 0.85, dodgeCooldown: 2.3, pauseTime: 0.1 };
+    }
+    if (this.difficulty === 'normal') {
+      return { cooldownMult: 1.1, speedMult: 0.85, spread: 0.2, dodgeChance: 0.5, dodgeCooldown: 3.8, pauseTime: 0.28 };
+    }
+    return { cooldownMult: 1.4, speedMult: 0.72, spread: 0.32, dodgeChance: 0.25, dodgeCooldown: 5.5, pauseTime: 0.5 };
+  }
+
+  /** Shows a brief warning ring and aim line before an AI ultimate fires. */
+  protected startUltTelegraph(targetX: number, targetY: number, color: string, duration: number = 0.45) {
+    this.pendingUltTimer = duration;
+    this.pendingUltAim = { x: targetX, y: targetY };
+    this.lookAt(targetX, targetY);
+    this.vx = 0;
+    this.vy = 0;
+    combat.spawnTelegraph({
+      x: this.x,
+      y: this.y,
+      targetX,
+      targetY,
+      color,
+      lifetime: duration,
+      maxLifetime: duration,
+      radius: this.radius * 1.4,
+    });
+  }
+
+  protected notifyLowStamina() {
+    if (this.lowStaminaToastTimer > 0) return;
+    this.lowStaminaToastTimer = 0.65;
+    combat.spawnDamageNumber(this.x, this.y - 34, 'LOW STAMINA!', '#fbbf24', 0.8);
+  }
 
   /** Returns a slightly offset aim point so AI attacks are dodgeable rather than frame-perfect. */
   protected getAimWithSpread(

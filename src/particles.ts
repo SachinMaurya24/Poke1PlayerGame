@@ -392,6 +392,13 @@ export class ParticleSystem {
         ctx.beginPath();
         ctx.ellipse(p.x, p.y, p.ringRadius, p.ringRadius * 0.55, 0, 0, Math.PI * 2);
         ctx.stroke();
+      } else if (p.type === 'leaf') {
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.life * 10);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.radius * 1.4, p.radius * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
       } else {
         ctx.fillStyle = p.color;
         if (p.glow) {

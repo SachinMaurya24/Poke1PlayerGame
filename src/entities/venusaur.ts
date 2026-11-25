@@ -124,6 +124,7 @@ export class Venusaur extends Pokemon {
       lifetime: 0.85,
       maxLifetime: 0.85,
       piercing: false,
+      isBasic: true,
       scale: 1.15,
     });
 
@@ -134,7 +135,11 @@ export class Venusaur extends Pokemon {
   public override castSkill1(targetX: number, targetY: number): boolean {
     if (this.isFainted || this.isDashing || this.hurtTimer > 0) return false;
     const skill = this.skills.vineWhip;
-    if (skill.currentCooldown > 0 || this.stats.stamina < skill.staminaCost) return false;
+    if (skill.currentCooldown > 0) return false;
+    if (this.stats.stamina < skill.staminaCost) {
+      if (this.isPlayer) this.notifyLowStamina();
+      return false;
+    }
 
     skill.currentCooldown = skill.cooldown;
     this.stats.stamina -= skill.staminaCost;
@@ -166,7 +171,11 @@ export class Venusaur extends Pokemon {
   public override castSkill2(targetX: number, targetY: number): boolean {
     if (this.isFainted || this.isDashing || this.hurtTimer > 0) return false;
     const skill = this.skills.solarBeam;
-    if (skill.currentCooldown > 0 || this.stats.stamina < skill.staminaCost) return false;
+    if (skill.currentCooldown > 0) return false;
+    if (this.stats.stamina < skill.staminaCost) {
+      if (this.isPlayer) this.notifyLowStamina();
+      return false;
+    }
 
     skill.currentCooldown = skill.cooldown;
     this.stats.stamina -= skill.staminaCost;
@@ -201,11 +210,24 @@ export class Venusaur extends Pokemon {
   public override updateAI(dt: number, target: Pokemon, arenaRadius: number) {
     if (this.isFainted || target.isFainted) return;
 
+    const diff = this.getDifficultyParams();
+
     this.razorLeafCooldown = Math.max(0, this.razorLeafCooldown - dt);
     this.solarBeamCooldown = Math.max(0, this.solarBeamCooldown - dt);
     this.vineWhipCooldown = Math.max(0, this.vineWhipCooldown - dt);
     this.dodgeCooldown = Math.max(0, this.dodgeCooldown - dt);
     this.aiPauseTimer = Math.max(0, this.aiPauseTimer - dt);
+
+    if (this.pendingUltTimer > 0) {
+      this.pendingUltTimer -= dt;
+      if (this.pendingUltTimer <= 0 && this.pendingUltAim) {
+        this.castSkill2(this.pendingUltAim.x, this.pendingUltAim.y);
+        this.pendingUltAim = null;
+        this.solarBeamCooldown = (5.6 + Math.random() * 1.6) * diff.cooldownMult;
+        this.aiPauseTimer = diff.pauseTime * 1.25;
+      }
+      return;
+    }
 
     this.strafeChangeTimer -= dt;
     if (this.strafeChangeTimer <= 0) {
@@ -224,26 +246,24 @@ export class Venusaur extends Pokemon {
     this.lookAt(target.x, target.y);
 
     if (dist < 85 && this.vineWhipCooldown <= 0) {
-      const aim = this.getAimWithSpread(target.x, target.y, 0.28);
+      const aim = this.getAimWithSpread(target.x, target.y, diff.spread);
       this.castSkill1(aim.x, aim.y);
-      this.vineWhipCooldown = 3.8 + Math.random() * 0.8;
-      this.aiPauseTimer = 0.5;
+      this.vineWhipCooldown = (2.7 + Math.random() * 0.6) * diff.cooldownMult;
+      this.aiPauseTimer = diff.pauseTime;
       return;
     }
 
     if (this.solarBeamCooldown <= 0 && dist < 390 && dist > 80) {
-      const aim = this.getAimWithSpread(target.x, target.y, 0.34);
-      this.castSkill2(aim.x, aim.y);
-      this.solarBeamCooldown = 7.8 + Math.random() * 2.0;
-      this.aiPauseTimer = 0.65;
+      const aim = this.getAimWithSpread(target.x, target.y, diff.spread);
+      this.startUltTelegraph(aim.x, aim.y, '#4ade80', 0.45);
       return;
     }
 
     if (this.razorLeafCooldown <= 0 && dist < 420) {
-      const aim = this.getAimWithSpread(target.x, target.y, 0.3);
+      const aim = this.getAimWithSpread(target.x, target.y, diff.spread);
       this.castBasicAttack(aim.x, aim.y);
-      this.razorLeafCooldown = 2.6 + Math.random() * 0.8;
-      this.aiPauseTimer = 0.4;
+      this.razorLeafCooldown = (1.9 + Math.random() * 0.5) * diff.cooldownMult;
+      this.aiPauseTimer = diff.pauseTime * 0.8;
       return;
     }
 
@@ -263,8 +283,8 @@ export class Venusaur extends Pokemon {
 
     const mLen = Math.hypot(moveX, moveY);
     if (mLen > 0.1) {
-      this.vx = (moveX / mLen) * this.stats.speed * 0.72;
-      this.vy = (moveY / mLen) * this.stats.speed * 0.72;
+      this.vx = (moveX / mLen) * this.stats.speed * diff.speedMult;
+      this.vy = (moveY / mLen) * this.stats.speed * diff.speedMult;
       this.setAction('walk');
     } else {
       this.setAction('idle');
@@ -273,17 +293,18 @@ export class Venusaur extends Pokemon {
 
   private checkDodgeIncoming(dt: number) {
     if (this.dodgeCooldown > 0 || this.isDashing || this.hurtTimer > 0) return;
+    const diff = this.getDifficultyParams();
     for (const proj of combat.projectiles) {
       if (proj.owner === (this.isPlayer ? 'player' : 'enemy')) continue;
       const dist = Math.hypot(proj.x - this.x, proj.y - this.y);
       if (dist < 105) {
         const dot = proj.vx * (this.x - proj.x) + proj.vy * (this.y - proj.y);
         if (dot > 0) {
-          if (Math.random() < 0.25) {
+          if (Math.random() < diff.dodgeChance) {
             const pAngle = Math.atan2(proj.vy, proj.vx);
             const dodgeAngle = pAngle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
             this.dash(Math.cos(dodgeAngle), Math.sin(dodgeAngle), 360, 0.2);
-            this.dodgeCooldown = 5.5 + Math.random() * 2.0;
+            this.dodgeCooldown = diff.dodgeCooldown + Math.random() * 1.5;
           } else {
             this.dodgeCooldown = 1.2;
           }

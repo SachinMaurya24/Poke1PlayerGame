@@ -61,13 +61,67 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+        background: linear-gradient(rgba(2, 6, 23, 0.72), rgba(2, 6, 23, 0.88)),
+          url('/assets/stadium_bg.jpg') center/cover no-repeat;
         z-index: 50;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         align-items: center;
         padding: 24px 30px;
+      }
+
+      .difficulty-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+        background: rgba(15, 23, 42, 0.85);
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+      }
+
+      .difficulty-label {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 9px;
+        color: #94a3b8;
+        margin-right: 4px;
+      }
+
+      .diff-btn {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 9px;
+        padding: 6px 12px;
+        border-radius: 5px;
+        border: 1px solid #475569;
+        background: #1e293b;
+        color: #cbd5e1;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .diff-btn:hover {
+        border-color: #94a3b8;
+        color: #ffffff;
+      }
+
+      .diff-btn.selected[data-diff='easy'] {
+        background: #16a34a;
+        border-color: #4ade80;
+        color: #ffffff;
+      }
+
+      .diff-btn.selected[data-diff='normal'] {
+        background: #d97706;
+        border-color: #fbbf24;
+        color: #ffffff;
+      }
+
+      .diff-btn.selected[data-diff='hard'] {
+        background: #dc2626;
+        border-color: #f87171;
+        color: #ffffff;
       }
 
       .menu-header {
@@ -718,6 +772,13 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="difficulty-bar">
+          <span class="difficulty-label">BOT DIFFICULTY:</span>
+          <button class="diff-btn selected" data-diff="easy">EASY</button>
+          <button class="diff-btn" data-diff="normal">NORMAL</button>
+          <button class="diff-btn" data-diff="hard">HARD</button>
         </div>
 
         <button id="start-battle-btn">⚡ ENTER STADIUM & FIGHT! ⚡</button>

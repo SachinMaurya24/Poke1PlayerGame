@@ -22,6 +22,7 @@ export interface AnimMeta {
 }
 
 export type PokemonElement = 'fire' | 'water' | 'grass' | 'fighting' | 'steel' | 'dragon' | 'normal';
+export type Difficulty = 'easy' | 'normal' | 'hard';
 
 export interface PokemonStats {
   maxHp: number;
@@ -65,9 +66,23 @@ export interface Projectile {
   piercing: boolean;
   isFireBlast?: boolean;
   isSolarBeam?: boolean;
+  isBoneRush?: boolean;
+  isBasic?: boolean;
   hasExploded?: boolean;
   hasHitTarget?: boolean;
   scale?: number;
+  age?: number;
+}
+
+export interface Telegraph {
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+  color: string;
+  lifetime: number;
+  maxLifetime: number;
+  radius: number;
 }
 
 export interface MeleeHitbox {

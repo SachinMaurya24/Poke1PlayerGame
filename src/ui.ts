@@ -1,5 +1,6 @@
 import { Pokemon } from './entities/pokemon';
 import { sound } from './audio';
+import { Difficulty } from './types';
 
 export type GameState = 'menu' | 'intro' | 'fighting' | 'finished';
 export type PokemonId = 'charizard' | 'blastoise' | 'venusaur' | 'lucario';
@@ -111,7 +112,8 @@ export class UIManager {
   private selectionScreen!: HTMLElement;
   public selectedPlayerId: PokemonId = 'charizard';
   public selectedBotId: PokemonId | 'random' = 'blastoise';
-  public onStartBattleCallback?: (playerId: PokemonId, botId: PokemonId) => void;
+  public selectedDifficulty: Difficulty = 'easy';
+  public onStartBattleCallback?: (playerId: PokemonId, botId: PokemonId, difficulty: Difficulty) => void;
 
   // In-Game Top HUD
   private playerCardName!: HTMLElement;
@@ -229,6 +231,16 @@ export class UIManager {
       });
     });
 
+    // Difficulty choices
+    const diffBtns = document.querySelectorAll('.diff-btn');
+    diffBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        diffBtns.forEach((b) => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        this.selectedDifficulty = (btn.getAttribute('data-diff') as Difficulty) || 'easy';
+      });
+    });
+
     // Start battle button
     const startBtn = document.getElementById('start-battle-btn');
     if (startBtn) {
@@ -240,7 +252,7 @@ export class UIManager {
         }
         this.selectionScreen.style.display = 'none';
         if (this.onStartBattleCallback) {
-          this.onStartBattleCallback(this.selectedPlayerId, actualBotId as PokemonId);
+          this.onStartBattleCallback(this.selectedPlayerId, actualBotId as PokemonId, this.selectedDifficulty);
         }
       });
     }
