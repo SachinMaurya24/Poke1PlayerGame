@@ -57,12 +57,13 @@ export class Blastoise extends Pokemon {
   };
 
   // AI Cooldowns
-  private waterGunCooldown: number = 0;
-  private hydroPumpCooldown: number = 2.0;
-  private meleeCooldown: number = 0;
-  private dodgeCooldown: number = 0;
+  private waterGunCooldown: number = 1.2;
+  private hydroPumpCooldown: number = 4.0;
+  private meleeCooldown: number = 1.5;
+  private dodgeCooldown: number = 2.0;
   private strafeDirection: number = 1;
   private strafeChangeTimer: number = 1.5;
+  private aiPauseTimer: number = 0;
 
   constructor(x: number, y: number) {
     super(
@@ -224,16 +225,17 @@ export class Blastoise extends Pokemon {
     this.hydroPumpCooldown = Math.max(0, this.hydroPumpCooldown - dt);
     this.meleeCooldown = Math.max(0, this.meleeCooldown - dt);
     this.dodgeCooldown = Math.max(0, this.dodgeCooldown - dt);
+    this.aiPauseTimer = Math.max(0, this.aiPauseTimer - dt);
 
     this.strafeChangeTimer -= dt;
     if (this.strafeChangeTimer <= 0) {
       this.strafeDirection = Math.random() < 0.5 ? 1 : -1;
-      this.strafeChangeTimer = 1.2 + Math.random() * 1.5;
+      this.strafeChangeTimer = 1.4 + Math.random() * 1.6;
     }
 
     this.checkDodgeIncoming(dt);
 
-    if (this.isDashing || this.hurtTimer > 0 || this.actionLockTimer > 0) return;
+    if (this.isDashing || this.hurtTimer > 0 || this.actionLockTimer > 0 || this.aiPauseTimer > 0) return;
 
     const dx = target.x - this.x;
     const dy = target.y - this.y;
@@ -242,20 +244,26 @@ export class Blastoise extends Pokemon {
     this.lookAt(target.x, target.y);
 
     if (dist < 80 && this.meleeCooldown <= 0) {
-      this.castSkullBash(target.x, target.y);
-      this.meleeCooldown = 2.4;
+      const aim = this.getAimWithSpread(target.x, target.y, 0.28);
+      this.castSkullBash(aim.x, aim.y);
+      this.meleeCooldown = 3.6 + Math.random() * 0.8;
+      this.aiPauseTimer = 0.5;
       return;
     }
 
     if (this.hydroPumpCooldown <= 0 && dist < 380 && dist > 70) {
-      this.castHydroPump(target.x, target.y);
-      this.hydroPumpCooldown = 4.8 + Math.random() * 1.5;
+      const aim = this.getAimWithSpread(target.x, target.y, 0.34);
+      this.castHydroPump(aim.x, aim.y);
+      this.hydroPumpCooldown = 7.5 + Math.random() * 2.0;
+      this.aiPauseTimer = 0.65;
       return;
     }
 
     if (this.waterGunCooldown <= 0 && dist < 420) {
-      this.castWaterGun(target.x, target.y);
-      this.waterGunCooldown = 1.8 + Math.random() * 0.4;
+      const aim = this.getAimWithSpread(target.x, target.y, 0.3);
+      this.castWaterGun(aim.x, aim.y);
+      this.waterGunCooldown = 2.6 + Math.random() * 0.8;
+      this.aiPauseTimer = 0.4;
       return;
     }
 
@@ -274,8 +282,8 @@ export class Blastoise extends Pokemon {
 
     const mLen = Math.hypot(moveX, moveY);
     if (mLen > 0.1) {
-      this.vx = (moveX / mLen) * this.stats.speed;
-      this.vy = (moveY / mLen) * this.stats.speed;
+      this.vx = (moveX / mLen) * this.stats.speed * 0.72;
+      this.vy = (moveY / mLen) * this.stats.speed * 0.72;
       this.setAction('walk');
     } else {
       this.setAction('idle');
@@ -287,13 +295,17 @@ export class Blastoise extends Pokemon {
     for (const proj of combat.projectiles) {
       if (proj.owner === (this.isPlayer ? 'player' : 'enemy')) continue;
       const dist = Math.hypot(proj.x - this.x, proj.y - this.y);
-      if (dist < 140) {
+      if (dist < 105) {
         const dot = proj.vx * (this.x - proj.x) + proj.vy * (this.y - proj.y);
         if (dot > 0) {
-          const pAngle = Math.atan2(proj.vy, proj.vx);
-          const dodgeAngle = pAngle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
-          this.dash(Math.cos(dodgeAngle), Math.sin(dodgeAngle), 380, 0.2);
-          this.dodgeCooldown = 2.4 + Math.random();
+          if (Math.random() < 0.25) {
+            const pAngle = Math.atan2(proj.vy, proj.vx);
+            const dodgeAngle = pAngle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
+            this.dash(Math.cos(dodgeAngle), Math.sin(dodgeAngle), 360, 0.2);
+            this.dodgeCooldown = 5.5 + Math.random() * 2.0;
+          } else {
+            this.dodgeCooldown = 1.2;
+          }
           return;
         }
       }

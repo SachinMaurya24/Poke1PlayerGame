@@ -228,6 +228,23 @@ export class Pokemon {
 
   public updateAI(dt: number, target: Pokemon, arenaRadius: number): void {}
 
+  /** Returns a slightly offset aim point so AI attacks are dodgeable rather than frame-perfect. */
+  protected getAimWithSpread(
+    targetX: number,
+    targetY: number,
+    maxAngleSpread: number = 0.32
+  ): { x: number; y: number } {
+    const dx = targetX - this.x;
+    const dy = targetY - this.y;
+    const dist = Math.max(40, Math.hypot(dx, dy));
+    const baseAngle = Math.atan2(dy, dx);
+    const offsetAngle = baseAngle + (Math.random() * 2 - 1) * maxAngleSpread;
+    return {
+      x: this.x + Math.cos(offsetAngle) * dist,
+      y: this.y + Math.sin(offsetAngle) * dist,
+    };
+  }
+
   public getSkills(): Record<string, any> {
     return {};
   }

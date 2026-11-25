@@ -57,12 +57,13 @@ export class Charizard extends Pokemon {
   };
 
   // AI Cooldowns
-  private aiBasicCooldown: number = 0;
-  private aiSkill1Cooldown: number = 0;
-  private aiSkill2Cooldown: number = 2.5;
-  private aiDodgeCooldown: number = 0;
+  private aiBasicCooldown: number = 1.2;
+  private aiSkill1Cooldown: number = 1.5;
+  private aiSkill2Cooldown: number = 4.0;
+  private aiDodgeCooldown: number = 2.0;
   private strafeDirection: number = 1;
   private strafeChangeTimer: number = 1.3;
+  private aiPauseTimer: number = 0;
 
   constructor(x: number, y: number) {
     super(
@@ -222,16 +223,17 @@ export class Charizard extends Pokemon {
     this.aiSkill1Cooldown = Math.max(0, this.aiSkill1Cooldown - dt);
     this.aiSkill2Cooldown = Math.max(0, this.aiSkill2Cooldown - dt);
     this.aiDodgeCooldown = Math.max(0, this.aiDodgeCooldown - dt);
+    this.aiPauseTimer = Math.max(0, this.aiPauseTimer - dt);
 
     this.strafeChangeTimer -= dt;
     if (this.strafeChangeTimer <= 0) {
       this.strafeDirection = Math.random() < 0.5 ? 1 : -1;
-      this.strafeChangeTimer = 1.2 + Math.random() * 1.5;
+      this.strafeChangeTimer = 1.4 + Math.random() * 1.6;
     }
 
     this.checkDodgeIncoming(dt);
 
-    if (this.isDashing || this.hurtTimer > 0 || this.actionLockTimer > 0) return;
+    if (this.isDashing || this.hurtTimer > 0 || this.actionLockTimer > 0 || this.aiPauseTimer > 0) return;
 
     const dx = target.x - this.x;
     const dy = target.y - this.y;
@@ -240,20 +242,26 @@ export class Charizard extends Pokemon {
     this.lookAt(target.x, target.y);
 
     if (dist < 80 && this.aiSkill1Cooldown <= 0) {
-      this.castDragonClaw(target.x, target.y);
-      this.aiSkill1Cooldown = 2.4;
+      const aim = this.getAimWithSpread(target.x, target.y, 0.28);
+      this.castDragonClaw(aim.x, aim.y);
+      this.aiSkill1Cooldown = 3.6 + Math.random() * 0.8;
+      this.aiPauseTimer = 0.5;
       return;
     }
 
     if (this.aiSkill2Cooldown <= 0 && dist < 380 && dist > 70) {
-      this.castFireBlast(target.x, target.y);
-      this.aiSkill2Cooldown = 5.2 + Math.random() * 1.5;
+      const aim = this.getAimWithSpread(target.x, target.y, 0.34);
+      this.castFireBlast(aim.x, aim.y);
+      this.aiSkill2Cooldown = 7.5 + Math.random() * 2.0;
+      this.aiPauseTimer = 0.65;
       return;
     }
 
     if (this.aiBasicCooldown <= 0 && dist < 420) {
-      this.castFlamethrower(target.x, target.y);
-      this.aiBasicCooldown = 1.8 + Math.random() * 0.4;
+      const aim = this.getAimWithSpread(target.x, target.y, 0.3);
+      this.castFlamethrower(aim.x, aim.y);
+      this.aiBasicCooldown = 2.6 + Math.random() * 0.8;
+      this.aiPauseTimer = 0.4;
       return;
     }
 
@@ -272,8 +280,8 @@ export class Charizard extends Pokemon {
 
     const mLen = Math.hypot(moveX, moveY);
     if (mLen > 0.1) {
-      this.vx = (moveX / mLen) * this.stats.speed;
-      this.vy = (moveY / mLen) * this.stats.speed;
+      this.vx = (moveX / mLen) * this.stats.speed * 0.72;
+      this.vy = (moveY / mLen) * this.stats.speed * 0.72;
       this.setAction('walk');
     } else {
       this.setAction('idle');
@@ -285,13 +293,17 @@ export class Charizard extends Pokemon {
     for (const proj of combat.projectiles) {
       if (proj.owner === (this.isPlayer ? 'player' : 'enemy')) continue;
       const dist = Math.hypot(proj.x - this.x, proj.y - this.y);
-      if (dist < 130) {
+      if (dist < 105) {
         const dot = proj.vx * (this.x - proj.x) + proj.vy * (this.y - proj.y);
         if (dot > 0) {
-          const pAngle = Math.atan2(proj.vy, proj.vx);
-          const dodgeAngle = pAngle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
-          this.dash(Math.cos(dodgeAngle), Math.sin(dodgeAngle), 420, 0.22);
-          this.aiDodgeCooldown = 2.4 + Math.random();
+          if (Math.random() < 0.25) {
+            const pAngle = Math.atan2(proj.vy, proj.vx);
+            const dodgeAngle = pAngle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
+            this.dash(Math.cos(dodgeAngle), Math.sin(dodgeAngle), 400, 0.2);
+            this.aiDodgeCooldown = 5.5 + Math.random() * 2.0;
+          } else {
+            this.aiDodgeCooldown = 1.2;
+          }
           return;
         }
       }

@@ -57,12 +57,13 @@ export class Lucario extends Pokemon {
   };
 
   // AI Cooldowns
-  private auraSphereCooldown: number = 0;
-  private boneRushCooldown: number = 2.0;
-  private closeCombatCooldown: number = 0;
-  private dodgeCooldown: number = 0;
+  private auraSphereCooldown: number = 1.2;
+  private boneRushCooldown: number = 4.0;
+  private closeCombatCooldown: number = 1.5;
+  private dodgeCooldown: number = 2.0;
   private strafeDirection: number = 1;
   private strafeChangeTimer: number = 1.2;
+  private aiPauseTimer: number = 0;
 
   constructor(x: number, y: number) {
     super(
@@ -209,16 +210,17 @@ export class Lucario extends Pokemon {
     this.boneRushCooldown = Math.max(0, this.boneRushCooldown - dt);
     this.closeCombatCooldown = Math.max(0, this.closeCombatCooldown - dt);
     this.dodgeCooldown = Math.max(0, this.dodgeCooldown - dt);
+    this.aiPauseTimer = Math.max(0, this.aiPauseTimer - dt);
 
     this.strafeChangeTimer -= dt;
     if (this.strafeChangeTimer <= 0) {
       this.strafeDirection = Math.random() < 0.5 ? 1 : -1;
-      this.strafeChangeTimer = 1.0 + Math.random() * 1.2;
+      this.strafeChangeTimer = 1.2 + Math.random() * 1.4;
     }
 
     this.checkDodgeIncoming(dt);
 
-    if (this.isDashing || this.hurtTimer > 0 || this.actionLockTimer > 0) return;
+    if (this.isDashing || this.hurtTimer > 0 || this.actionLockTimer > 0 || this.aiPauseTimer > 0) return;
 
     const dx = target.x - this.x;
     const dy = target.y - this.y;
@@ -228,24 +230,30 @@ export class Lucario extends Pokemon {
 
     // Lucario is an aggressive melee/rushdown fighter
     if (dist < 85 && this.closeCombatCooldown <= 0) {
-      this.castSkill1(target.x, target.y);
-      this.closeCombatCooldown = 2.2;
+      const aim = this.getAimWithSpread(target.x, target.y, 0.28);
+      this.castSkill1(aim.x, aim.y);
+      this.closeCombatCooldown = 3.6 + Math.random() * 0.8;
+      this.aiPauseTimer = 0.5;
       return;
     }
 
     if (this.boneRushCooldown <= 0 && dist < 320 && dist > 60) {
-      this.castSkill2(target.x, target.y);
-      this.boneRushCooldown = 5.0 + Math.random() * 1.5;
+      const aim = this.getAimWithSpread(target.x, target.y, 0.34);
+      this.castSkill2(aim.x, aim.y);
+      this.boneRushCooldown = 7.5 + Math.random() * 2.0;
+      this.aiPauseTimer = 0.65;
       return;
     }
 
     if (this.auraSphereCooldown <= 0 && dist < 380) {
-      this.castBasicAttack(target.x, target.y);
-      this.auraSphereCooldown = 1.8 + Math.random() * 0.4;
+      const aim = this.getAimWithSpread(target.x, target.y, 0.3);
+      this.castBasicAttack(aim.x, aim.y);
+      this.auraSphereCooldown = 2.6 + Math.random() * 0.8;
+      this.aiPauseTimer = 0.4;
       return;
     }
 
-    // Lucario likes to dash in close for Close Combat
+    // Approach target with moderate strafe
     const angle = Math.atan2(dy, dx);
     const perp = angle + (Math.PI / 2) * this.strafeDirection;
     let moveX = Math.cos(angle) * 0.8 + Math.cos(perp) * 0.4;
@@ -253,8 +261,8 @@ export class Lucario extends Pokemon {
 
     const mLen = Math.hypot(moveX, moveY);
     if (mLen > 0.1) {
-      this.vx = (moveX / mLen) * this.stats.speed;
-      this.vy = (moveY / mLen) * this.stats.speed;
+      this.vx = (moveX / mLen) * this.stats.speed * 0.72;
+      this.vy = (moveY / mLen) * this.stats.speed * 0.72;
       this.setAction('walk');
     } else {
       this.setAction('idle');
@@ -266,13 +274,17 @@ export class Lucario extends Pokemon {
     for (const proj of combat.projectiles) {
       if (proj.owner === (this.isPlayer ? 'player' : 'enemy')) continue;
       const dist = Math.hypot(proj.x - this.x, proj.y - this.y);
-      if (dist < 140) {
+      if (dist < 105) {
         const dot = proj.vx * (this.x - proj.x) + proj.vy * (this.y - proj.y);
         if (dot > 0) {
-          const pAngle = Math.atan2(proj.vy, proj.vx);
-          const dodgeAngle = pAngle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
-          this.dash(Math.cos(dodgeAngle), Math.sin(dodgeAngle), 440, 0.2);
-          this.dodgeCooldown = 2.2 + Math.random();
+          if (Math.random() < 0.25) {
+            const pAngle = Math.atan2(proj.vy, proj.vx);
+            const dodgeAngle = pAngle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
+            this.dash(Math.cos(dodgeAngle), Math.sin(dodgeAngle), 400, 0.2);
+            this.dodgeCooldown = 5.5 + Math.random() * 2.0;
+          } else {
+            this.dodgeCooldown = 1.2;
+          }
           return;
         }
       }
